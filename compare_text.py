@@ -46,8 +46,8 @@ def compare(expected_list, got_list):
 
 if __name__ == '__main__':
     remove_these_words = ["a", "um", "uh", "ah", "umm", "o"]
-    got_text = "Hello! you am um good but sometimes bad"
-    expected_text = "Hello! I am good but sometimes bad jijiji oooooooooooo"
+    got_text = "ENTER YOUR GOT TEXT HERE"
+    expected_text = "ENTER YOUR EXPECTED TEXT HERE"
     expected_list = list_of_words(clean(expected_text))
     got_list = list_of_words(clean(got_text))
     refined_expected_list = remove_words(remove_these_words, expected_list)
