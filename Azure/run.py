@@ -27,7 +27,7 @@ input_text = get_text_from_input(input_audio_filename, speech_config)
 prGreen(input_text)
 
 
-remove_these_words = ["a", "um", "uh", "ah", "umm", "o"]
+remove_these_words = ["a", "um", "uh", "ah", "umm", "oh"]
 got_text = input_text.lower()
 expected_text = correct_text.lower()
 expected_list = list_of_words(clean(expected_text))
