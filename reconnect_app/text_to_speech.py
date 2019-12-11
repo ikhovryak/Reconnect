@@ -4,8 +4,10 @@ import wave
 import contextlib
 
 def get_correct_sound(filename, correct_text, speech_config):
+
+
     audio_output = speechsdk.AudioOutputConfig(filename=filename)
-    
+
 
     # Creates a synthesizer with the given settings
     speech_synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config, audio_config=audio_output)

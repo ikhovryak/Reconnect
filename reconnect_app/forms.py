@@ -1,22 +1,13 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, BooleanField
+from wtforms import TextField, FileField, SubmitField
 from wtforms.validators import DataRequired, Length, Email, EqualTo
 
 
-class Speech(FlaskForm):
-    correct_next = StringField('Text',
-                           validators=[DataRequired(), Length(min=2, max=20)])
-    email = StringField('Email',
-                        validators=[DataRequired(), Email()])
-    password = PasswordField('Password', validators=[DataRequired()])
-    confirm_password = PasswordField('Confirm Password',
-                                     validators=[DataRequired(), EqualTo('password')])
-    submit = SubmitField('Sign Up')
+class CorrectSpeechForm(FlaskForm):
+    correct_text = TextField('Type in the sentence you want to practice today:', validators=[DataRequired()])
+    submitc = SubmitField('Generate correct sound')
 
 
-class LoginForm(FlaskForm):
-    email = StringField('Email',
-                        validators=[DataRequired(), Email()])
-    password = PasswordField('Password', validators=[DataRequired()])
-    remember = BooleanField('Remember Me')
-    submit = SubmitField('Login')
+class UserSpeechForm(FlaskForm):
+    user_speech = FileField('Your recording', validators=[DataRequired()])
+    submitu = SubmitField('Submit recording')
