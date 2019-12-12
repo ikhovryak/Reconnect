@@ -10,61 +10,106 @@ class SoundComparison:
     def compare_waves(self, speaker_sound, correct_sound):
         speaker_rate, pre_speaker_data = scipy.io.wavfile.read(speaker_sound)
         correct_rate, correct_data = scipy.io.wavfile.read(correct_sound)
-        speaker_data = []
-        for i in range(len(pre_speaker_data)):
-            speaker_data.append((pre_speaker_data[i][0] + pre_speaker_data[i][1])/2)
-        audio_data = [speaker_data, correct_data]
-        audio_rate = [speaker_rate, correct_rate]
-        # string = ""
-        # for i in range(len(speaker_data)):
-        #     string += str((speaker_data[i][0] + speaker_data[i][1])/2)
-        #     string += "|"
-        # print(string)
-        # print(speaker_data
-        #       )
+        speaker_data = self.stereo_to_mono(pre_speaker_data)
+        speaker_data, speaker_rate = self.convert_audio_data_to_chunk_audio_data(speaker_data, speaker_rate)
+        correct_data, correct_rate = self.convert_audio_data_to_chunk_audio_data(correct_data, correct_rate)
+        # audio_data = [speaker_data, correct_data]
+        # audio_rate = [speaker_rate, correct_rate]
         # print(len(speaker_data), speaker_rate)
         # print(len(correct_data), correct_rate)
-        wave = self.normalize_audio_data_wave(speaker_data)
-        speaker_data = self.remove_audio_wave_silent_start(wave, speaker_rate)
-        wave = self.normalize_audio_data_wave(correct_data)
-        correct_data = self.remove_audio_wave_silent_start(wave, correct_rate, 0)
+        # print(max(speaker_data))
+        speaker_data = self.normalize_audio_data_wave(speaker_data)
+        correct_data = self.normalize_audio_data_wave(correct_data)
+        speaker_data_silence = self.calculate_silent_amplitude(speaker_data, speaker_rate)
+        correct_data_silence = self.calculate_silent_amplitude(correct_data, correct_rate, 0)
+        speaker_data = self.remove_audio_wave_silence(speaker_data, speaker_rate)
+        correct_data = self.remove_audio_wave_silence(correct_data, correct_rate, 0)
+        speaker_silence = self.find_audio_chunk_breaks(speaker_data, speaker_rate, speaker_data_silence)
+        correct_silence = self.find_audio_chunk_breaks(correct_data, correct_rate, correct_data_silence)
+        print(speaker_silence)
+        print(correct_silence)
+        speaker_time = np.arange(0, len(speaker_data), 1) / speaker_rate
+        correct_time = np.arange(0, len(correct_data), 1) / correct_rate
+
+        # plot amplitude (or loudness) over time
+        plt.figure(1)
+        plt.subplot(211)
+        plt.plot(speaker_time, speaker_data, linewidth=0.1, alpha=1, color='#000000')
+        plt.xlabel('Time (s)')
+        plt.ylabel('Amplitude')
+        plt.subplot(212)
+        plt.plot(correct_time, correct_data, linewidth=0.1, alpha=1, color='#000000')
+        plt.show()
         if self.check_for_long_breaks(speaker_data, speaker_rate) is not None:
             return False
-        if self.check_for_amplitude_inconsistencies(speaker_data, speaker_rate, correct_data, correct_rate) is not None:
-            return False
-        return True
+        # if self.check_for_amplitude_inconsistencies(speaker_data, speaker_rate, correct_data, correct_rate) is not None:
+        #     return False
+        # return True
+
+    def stereo_to_mono(self, audio_data):
+        audio_data = audio_data.astype(float)
+        return audio_data.sum(axis=1)
 
     def normalize_audio_data_wave(self, original_audio_data):
-        final_audio_data = []
-        for audio_data in original_audio_data:
-            final_audio_data.append(abs(audio_data))
-        max_amplitude = max(final_audio_data)
-        for i in range(len(final_audio_data)):
-            final_audio_data[i] = final_audio_data[i] / max_amplitude
+        max_amplitude = max([abs(x) for x in original_audio_data])
+        final_audio_data = [abs(x / max_amplitude) for x in original_audio_data]
         return final_audio_data
 
-    def remove_audio_wave_silent_start(self, audio_data, rate, min=None):
+    def find_audio_chunk_breaks(self, audio_data, rate, silence_amplitude):
+        min_break_count = rate / 5
         counter = 0
-        while audio_data[counter] < self.calculate_silent_amplitude(audio_data, rate, min) or audio_data[counter] == 0:
+        break_tuples = []
+        start_break = 0
+        while counter < len(audio_data):
+            if audio_data[counter] <= silence_amplitude:
+                if start_break == 0:
+                    start_break = counter
+            else:
+                if start_break > 0:
+                    if (counter - start_break) >= min_break_count:
+                        break_tuples.append((start_break / rate, counter / rate))
+                    start_break = 0
             counter += 1
-        return audio_data[counter:]
+        return break_tuples
+
+    def check_sensibility_of_breaks(self, speaker_breaks, correct_breaks):
+        #last_time_difference is used to track the interval between gaps so that past differences would not stack up
+        last_time_difference = 0
+        if len(speaker_breaks) != len(correct_breaks):
+            return False
+        else:
+            for i in range(len(speaker_breaks)):
+                speaker_start = speaker_breaks[i][0]
+                speaker_break_time = speaker_breaks[i][1] - speaker_start
+                correct_start = correct_breaks[i][0]
+                correct_break_time = correct_breaks[i][1] - correct_start
+
+
+
+    def remove_audio_wave_silence(self, audio_data, rate, min=None):
+        start_counter = 0
+        end_counter = 0
+        reversed_audio_data = audio_data[::-1]
+        while audio_data[start_counter] <= self.calculate_silent_amplitude(audio_data, rate, min):
+            start_counter += 1
+        while reversed_audio_data[end_counter] <= self.calculate_silent_amplitude(reversed_audio_data, rate, min):
+            end_counter += 1
+        return audio_data[start_counter: (len(audio_data) - end_counter)]
 
     def calculate_silent_amplitude(self, audio_data, rate, min=None):
         end = int(rate/3)
-        return max(audio_data[:end]) if min is None else 0
+        return max(max(audio_data[-end:]), 0.15) if min is None else 0.1
 
     def check_for_long_breaks(self, audio_data, rate):
         counter = 0
         duration = 0
         while counter < len(audio_data):
             if audio_data[counter] < self.calculate_silent_amplitude(audio_data, rate):
-                print("1")
                 duration += 1
                 if duration > (2.2 * rate):
                     return counter / rate
             else:
                 duration = 0
-                print("2", counter, len(audio_data))
             counter += 1
         return None
 
@@ -78,14 +123,16 @@ class SoundComparison:
 
     def convert_audio_data_to_chunk_audio_data(self, audio_data, rate):
         data = audio_data[:]
-        chunk_audio_data = [0] * (data // (rate / 10) + 1)
-        counter = 0
+        chunk_audio_data = [0] * ((len(data) // 10) + 1)
         for i in range(len(data)):
-            chunk_audio_data[counter//(rate / 10)] += data[counter]
-            counter += 1
+            index = int(i // 10)
+            chunk_audio_data[index] = chunk_audio_data[index] + abs(data[i])
+            # print("preupdate", chunk_audio_data[index])
         for i in range(len(chunk_audio_data)):
-            chunk_audio_data[i] = chunk_audio_data[i] / (rate / 10)
-        return chunk_audio_data
+            # print("preupdate", chunk_audio_data[i])
+            chunk_audio_data[i] = chunk_audio_data[i] / (int(rate) / 10)
+            # print("update", chunk_audio_data[i])
+        return chunk_audio_data, int(rate/10)
 
 if __name__ == "__main__":
     # web_file="C:\Users\Samuel\PycharmProjects\speech_analysis\wave_comparison"
