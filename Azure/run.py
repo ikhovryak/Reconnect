@@ -15,6 +15,10 @@ correct_audio_filename = "correct_sound.wav"
 print("Enter a phrase you want to practice today:")
 correct_text = input()
 
+# I think I have a working prototype
+
+
+
 prGreen(correct_text)
 
 correct_audio = get_correct_sound(correct_audio_filename, correct_text, speech_config)

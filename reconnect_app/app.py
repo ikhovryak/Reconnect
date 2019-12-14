@@ -9,7 +9,7 @@ from forms import CorrectSpeechForm, UserSpeechForm
 import os.path
 from os import path
 import time
-
+from werkzeug import secure_filename
 # from record_audio import record_audio
 from speech_to_text import get_text_from_input
 # from compare_text import *
@@ -46,10 +46,10 @@ def get_file_name(filename):
     else:
         return filename.split(".")[-1]+ "1" + filename.split(".")[-1]
 
-def generate_user_text(user_audio_filename):
-    new_file_name = str(time.time()) +  data["user_audio_filename"] + str(time.time()) + ".wav"
-    path_to_file = os.path.join(app.root_path, "static/Sounds", new_file_name)
-    return get_text_from_input(path_to_file, speech_config)
+def generate_user_text(user_audio_path):
+    # new_file_name = str(time.time()) +  user_audio_filename + str(time.time()) + ".wav"
+    path_to_file = os.path.join(app.root_path, "static/Sounds", user_audio_filename)
+    return get_text_from_input(user_audio_path, speech_config)
 
 def generate_correct_sound(correct_text):
     new_file_name = data["correct_audio_filename"] + str(time.time()) + ".wav"
@@ -91,8 +91,10 @@ def practice():
     #doesn't validate the form?? doesn't get into next lines
     if user_form.submitu.data and user_form.validate_on_submit():
         print("Got the sound!")
-        speech.user_audio_location = user_form.user_speech.data.name
-        speech.user_text = generate_user_text(user_form.user_speech.data.name)
+        filename = secure_filename(user_form.user_speech.data.filename)
+        user_form.user_speech.data.save('static/Sounds/' + filename)
+        speech.user_audio_location = 'static/Sounds/' + filename
+        speech.user_text = generate_user_text(speech.user_audio_location)
         db.session.commit()
         return url_for('feedback', speech=speech)
     return render_template('practice.html', correct_text=speech.correct_text, correct_form=correct_form, user_form=user_form, correct_sound_address=str(speech.correct_audio_filename), title="Practice - Reconnect")
@@ -105,7 +107,7 @@ def learn2():
         user_form = UserSpeechForm()
         if user_form.validate_on_submit():
             print("Got the sound!")
-            user_text = generate_user_text(user_form.user_speech.data.name)
+            user_text = generate_user_text(user_form.user_speech.data)
             speech.user_audio = user_form.user_speech
             speech.user_text = user_text
             db.session.commit()

@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
-from wtforms import TextField, FileField, SubmitField
+from wtforms import TextField, SubmitField
 from wtforms.validators import DataRequired, Length, Email, EqualTo
-
+from flask_wtf.file import FileField, FileRequired
 
 class CorrectSpeechForm(FlaskForm):
     correct_text = TextField('Type in the sentence you want to practice today:', validators=[DataRequired()])
@@ -9,5 +9,5 @@ class CorrectSpeechForm(FlaskForm):
 
 
 class UserSpeechForm(FlaskForm):
-    user_speech = FileField('Your recording', validators=[DataRequired()])
+    user_speech = FileField('Your recording', validators=[FileRequired()])
     submitu = SubmitField('Submit recording')
