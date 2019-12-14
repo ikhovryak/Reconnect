@@ -13,11 +13,6 @@ class SoundComparison:
         speaker_data = self.stereo_to_mono(pre_speaker_data)
         speaker_data, speaker_rate = self.convert_audio_data_to_chunk_audio_data(speaker_data, speaker_rate)
         correct_data, correct_rate = self.convert_audio_data_to_chunk_audio_data(correct_data, correct_rate)
-        # audio_data = [speaker_data, correct_data]
-        # audio_rate = [speaker_rate, correct_rate]
-        # print(len(speaker_data), speaker_rate)
-        # print(len(correct_data), correct_rate)
-        # print(max(speaker_data))
         speaker_data = self.normalize_audio_data_wave(speaker_data)
         correct_data = self.normalize_audio_data_wave(correct_data)
         speaker_data_silence = self.calculate_silent_amplitude(speaker_data, speaker_rate)
@@ -26,8 +21,6 @@ class SoundComparison:
         correct_data = self.remove_audio_wave_silence(correct_data, correct_rate, 0)
         speaker_silence = self.find_audio_chunk_breaks(speaker_data, speaker_rate, speaker_data_silence)
         correct_silence = self.find_audio_chunk_breaks(correct_data, correct_rate, correct_data_silence)
-        print(speaker_silence)
-        print(correct_silence)
         speaker_time = np.arange(0, len(speaker_data), 1) / speaker_rate
         correct_time = np.arange(0, len(correct_data), 1) / correct_rate
 
@@ -42,6 +35,7 @@ class SoundComparison:
         plt.show()
         if self.check_for_long_breaks(speaker_data, speaker_rate) is not None:
             return False
+        return self.check_sensibility_of_breaks(speaker_silence, correct_silence)
         # if self.check_for_amplitude_inconsistencies(speaker_data, speaker_rate, correct_data, correct_rate) is not None:
         #     return False
         # return True
@@ -80,11 +74,17 @@ class SoundComparison:
         else:
             for i in range(len(speaker_breaks)):
                 speaker_start = speaker_breaks[i][0]
-                speaker_break_time = speaker_breaks[i][1] - speaker_start
+                speaker_end = speaker_breaks[i][1]
+                speaker_break_time = speaker_end - speaker_start
                 correct_start = correct_breaks[i][0]
-                correct_break_time = correct_breaks[i][1] - correct_start
-
-
+                correct_end = correct_breaks[i][1]
+                correct_break_time = correct_end - correct_start
+                if abs(speaker_break_time - correct_break_time) > 0.30:
+                    return False
+                if abs(speaker_start - correct_start) > (last_time_difference + 0.2):
+                    return False
+                last_time_difference = abs(correct_end - speaker_end)
+            return True
 
     def remove_audio_wave_silence(self, audio_data, rate, min=None):
         start_counter = 0
@@ -113,13 +113,13 @@ class SoundComparison:
             counter += 1
         return None
 
-    def check_for_amplitude_inconsistencies(self, audio_data1, rate1, audio_data2, rate2):
-        chunk_audio1 = self.convert_audio_data_to_chunk_audio_data(audio_data1, rate1)
-        chunk_audio2 = self.convert_audio_data_to_chunk_audio_data(audio_data2, rate2)
-        for i in range(len(chunk_audio1)):
-            if abs(chunk_audio1[i] - chunk_audio2[i]) > 0.2:
-                return i
-        return None
+    # def check_for_amplitude_inconsistencies(self, audio_data1, rate1, audio_data2, rate2):
+    #     chunk_audio1 = self.convert_audio_data_to_chunk_audio_data(audio_data1, rate1)
+    #     chunk_audio2 = self.convert_audio_data_to_chunk_audio_data(audio_data2, rate2)
+    #     for i in range(len(chunk_audio1)):
+    #         if abs(chunk_audio1[i] - chunk_audio2[i]) > 0.2:
+    #             return i
+    #     return None
 
     def convert_audio_data_to_chunk_audio_data(self, audio_data, rate):
         data = audio_data[:]
@@ -127,11 +127,8 @@ class SoundComparison:
         for i in range(len(data)):
             index = int(i // 10)
             chunk_audio_data[index] = chunk_audio_data[index] + abs(data[i])
-            # print("preupdate", chunk_audio_data[index])
         for i in range(len(chunk_audio_data)):
-            # print("preupdate", chunk_audio_data[i])
             chunk_audio_data[i] = chunk_audio_data[i] / (int(rate) / 10)
-            # print("update", chunk_audio_data[i])
         return chunk_audio_data, int(rate/10)
 
 if __name__ == "__main__":
