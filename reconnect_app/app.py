@@ -1,9 +1,9 @@
-from flask import Flask, render_template, url_for, redirect, current_app
+from flask import Flask, render_template, url_for, redirect, current_app, request
 import azure.cognitiveservices.speech as speechsdk
 from flask_sqlalchemy import SQLAlchemy
 from text_to_speech import get_correct_sound
 from text_to_speech import get_audio_length
-#import sounddevice as sd
+import secrets
 from scipy.io.wavfile import write
 from forms import CorrectSpeechForm, UserSpeechForm
 import os.path
@@ -12,7 +12,7 @@ import time
 from werkzeug import secure_filename
 # from record_audio import record_audio
 from speech_to_text import get_text_from_input
-# from compare_text import *
+from compare_text import *
 
 app = Flask(__name__)
 speech_key, service_region = "c87da06e1dfe4dd3b6e58fa41ec19c95", "eastus"
@@ -40,23 +40,25 @@ data = {
 
 }
 
-def get_file_name(filename):
-    if filename[0]=="1":
-        return filename[1:]
-    else:
-        return filename.split(".")[-1]+ "1" + filename.split(".")[-1]
 
 def generate_user_text(user_audio_path):
     # new_file_name = str(time.time()) +  user_audio_filename + str(time.time()) + ".wav"
-    path_to_file = os.path.join(app.root_path, "static/Sounds", user_audio_filename)
-    return get_text_from_input(user_audio_path, speech_config)
+    path_to_file = os.path.join(app.root_path, "static/Sounds", user_audio_path)
+    text = get_text_from_input(path_to_file, speech_config)
+    return text
+
+def save_sound_file(user_audio):
+    random_hex = secrets.token_hex(6)
+    _, f_ext = os.path.splitext(user_audio.filename)
+    audio_fn = "input_sound" + random_hex + f_ext
+    audio_path = os.path.join(app.root_path, 'static/Sounds', audio_fn)
+    user_audio.save(audio_path)
+    return audio_fn
 
 def generate_correct_sound(correct_text):
     new_file_name = data["correct_audio_filename"] + str(time.time()) + ".wav"
     print(new_file_name)
     path_to_file = os.path.join(app.root_path, "static/Sounds", new_file_name)
-    if path.exists("static/Sounds/*"):
-        os.remove("static/Sounds/*")
     correct_audio = get_correct_sound(path_to_file, correct_text, speech_config)
     return "static/Sounds/" + new_file_name
 
@@ -76,7 +78,7 @@ def learn():
         print("from learn -> ", speech)
         db.session.add(speech)
         db.session.commit()
-        return redirect(url_for('practice'))
+        return redirect(url_for('practice2'))
 
     return render_template('learn.html', correct_form=correct_form, title="Learn - Reconnect")
 
@@ -99,25 +101,37 @@ def practice():
         return url_for('feedback', speech=speech)
     return render_template('practice.html', correct_text=speech.correct_text, correct_form=correct_form, user_form=user_form, correct_sound_address=str(speech.correct_audio_filename), title="Practice - Reconnect")
 
+@app.route("/practice2", methods=["GET", "POST"])
+def practice2():
+    user_form = UserSpeechForm()
+    speech = Speech.query.order_by(-Speech.id).first()
 
+    print("we got to practice2 route")
+    print(speech)
+    #doesn't validate the form?? doesn't get into next lines
+    if user_form.validate_on_submit():
+        print("Got the sound!")
+        filename = save_sound_file(user_form.user_speech.data)
+        print("Filename -> ", filename)
 
-
-def learn2():
-    if speech:
-        user_form = UserSpeechForm()
-        if user_form.validate_on_submit():
-            print("Got the sound!")
-            user_text = generate_user_text(user_form.user_speech.data)
-            speech.user_audio = user_form.user_speech
-            speech.user_text = user_text
-            db.session.commit()
-    return render_template('learn.html', correct_form=correct_form, title="Learn - Reconnect", correct_text = correct_form.correct_text.data,  speech=speech, correct_sound_address=correct_sound_address)
+        speech.user_audio_location = "static/Sounds/" + filename
+        print("Location in db -> ", speech.user_audio_location )
+        speech.user_text = generate_user_text(filename)
+        print("Recognized text -> ", speech.user_text)
+        db.session.commit()
+        return redirect(url_for('feedback'))
+    return render_template('practice2.html', correct_text=speech.correct_text, user_form=user_form, correct_sound_address=str(speech.correct_audio_filename), title="Practice - Reconnect")
 
 
 @app.route("/feedback")
 def feedback():
-
-    return render_template('feedback.html')
+    speech = Speech.query.order_by(-Speech.id).first()
+    differences = get_differences(speech.correct_text, speech.user_text)
+    correct_list = list_of_words(speech.correct_text)
+    user_list = list_of_words(speech.user_text)
+    wrong_correct = differences.keys()
+    wrong_user = differences.values()
+    return render_template('feedback.html', correct_list=correct_list, user_list=user_list, wrong_correct=wrong_correct, wrong_user=wrong_user)
 
 
 if __name__ == '__main__':

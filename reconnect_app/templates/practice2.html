@@ -5,34 +5,15 @@
               Learn
             </div> -->
             <!-- <div class="card-body"> -->
-            <h3 class="display-4">Let's begin!</h3>
-              <form method="POST" action="">
-                {{ correct_form.hidden_tag() }}
+            <h3 class="display-4">Let's beginnn!</h3>
+              <!-- <form method="POST" action=""> -->
                 <fieldset class="form-group">
                   <div class="form-group">
-                    <span class="badge badge-info mr-2">1</span>
-                    <strong>{{ correct_form.correct_text.label(class="form-control-label lead") }}</strong>
+                    <strong><p class="lead"><span class="badge badge-info mr-2">1</span>Type in the sentence you want to practice today:</p></strong>
 
-                    {% if correct_form.correct_text. errors %}
-                        {{ correct_form.correct_text(class="form-control is-invalid")}}
-                        <div class="invalid-feedback">
-                          {% for error in correct_form.correct_text.errors %}
-                            <span>{{ error }}</span>
-                          {% endfor %}
-                        </div>
-                    {% else %}
-                      <!-- {{ correct_form.correct_text(class="form-control")}} -->
-                      <input class="form-control" id="correct_text" name="correct_text" required type="text" value="{{ correct_text }}">
-                    {% endif %}
-
+                      <p class="text-info">{{ correct_text }}</p>
                   </div>
                 </fieldset>
-                <div class="form-group">
-                  {{ correct_form.submitc(class="btn btn-outline-info") }}
-
-                </div>
-              </form>
-
 
               <hr>
               <strong><p class="lead"><span class="badge badge-info mr-2">2</span>This is how it sounds:</p></strong>
@@ -51,12 +32,16 @@
                   <fieldset class="form-group">
                     <div class="form-group">
                       {{ user_form.user_speech(class="form-control-file") }}
+                      {% if user_form.user_speech.errors %}
+                        {% for error in user_form.user_speech.errors %}
+                            <span class="text-danger">{{ error }}</span></br>
+                        {% endfor %}
+                    {% endif %}
                       <!-- <input type="file" accept="audio/* class="form-control" id="user_speech" name="user_speech"  value="" capture> -->
                     </div>
                   </fieldset>
                 <div class="form-group">
                   {{ user_form.submitu(class="btn btn-outline-info") }}
-
                 </div>
               </form>
 
