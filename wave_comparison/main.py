@@ -29,19 +29,20 @@ class SoundComparison:
         speaker_silence = self.find_audio_chunk_breaks(speaker_data, speaker_rate, speaker_data_silence)
         correct_silence = self.find_audio_chunk_breaks(correct_data, correct_rate, correct_data_silence)
 
-
         # plot amplitude (or loudness) over time
-        # speaker_time = np.arange(0, len(speaker_data), 1) / speaker_rate
-        # correct_time = np.arange(0, len(correct_data), 1) / correct_rate
-        # plt.figure(1)
-        # plt.subplot(211)
-        # plt.plot(speaker_time, speaker_data, linewidth=0.1, alpha=1, color='#000000')
-        # plt.xlabel('Time (s)')
-        # plt.ylabel('Amplitude')
-        # plt.subplot(212)
-        # plt.plot(correct_time, correct_data, linewidth=0.1, alpha=1, color='#000000')
-        # plt.show()
+        speaker_time = np.arange(0, len(speaker_data), 1) / speaker_rate
+        correct_time = np.arange(0, len(correct_data), 1) / correct_rate
+        plt.figure(1)
+        plt.subplot(211)
+        plt.plot(speaker_time, speaker_data, linewidth=0.1, alpha=1, color='#000000')
+        plt.xlabel('Time (s)')
+        plt.ylabel('Amplitude')
+        plt.subplot(212)
+        plt.plot(correct_time, correct_data, linewidth=0.1, alpha=1, color='#000000')
+        plt.show()
         self.check_sensibility_of_breaks(speaker_silence, correct_silence)
+        if self.result["long_pronunciation"] == [] and (len(speaker_data)/speaker_rate > len(correct_data)/correct_rate):
+            self.result["long_pronunciation"].append((0, len(speaker_data) / speaker_rate))
         return self.result
 
     def stereo_to_mono(self, audio_data):
@@ -89,13 +90,13 @@ class SoundComparison:
                 if (speaker_end - speaker_start) > 1.5:
                     self.result["long_breaks"].append(speaker_breaks[i])
                 elif (speaker_break_time - correct_break_time) > 0.30:
-                    self.result["long_breaks"].append((speaker_breaks[i][0] + self.input_sound_start_snip, speaker_breaks[i][1] + self.input_sound_start_snip))
+                    self.result["long_breaks"].append((speaker_start + self.input_sound_start_snip, speaker_end + self.input_sound_start_snip))
                 elif (correct_break_time - speaker_break_time) > 0.30:
-                    self.result["short_breaks"].append((speaker_breaks[i][0] + self.input_sound_start_snip, speaker_breaks[i][1] + self.input_sound_start_snip))
-                if (speaker_start - correct_start) > (last_time_difference + 0.5):
-                    self.result["long_pronunciation"].append((speaker_breaks[i-1][1] + self.input_sound_start_snip, speaker_breaks[i][0] + self.input_sound_start_snip))
-                elif (correct_start - speaker_start) > (last_time_difference + 0.5):
-                    self.result["short_pronunciation"].append((speaker_breaks[i-1][1] + self.input_sound_start_snip, speaker_breaks[i][0] + self.input_sound_start_snip))
+                    self.result["short_breaks"].append((speaker_start + self.input_sound_start_snip, speaker_end + self.input_sound_start_snip))
+                if (speaker_start - correct_start) > (last_time_difference + 0.5) and i > 0:
+                    self.result["long_pronunciation"].append((speaker_breaks[i-1][1] + self.input_sound_start_snip, speaker_start + self.input_sound_start_snip))
+                elif (correct_start - speaker_start) > (last_time_difference + 0.5) and i > 0:
+                    self.result["short_pronunciation"].append((speaker_breaks[i-1][1] + self.input_sound_start_snip, speaker_start + self.input_sound_start_snip))
                 last_time_difference = abs(correct_end - speaker_end)
 
     def remove_audio_wave_silence(self, audio_data, rate, min=None):
@@ -169,5 +170,5 @@ if __name__ == "__main__":
     #     string += str(abs(happy[i] / max))
     #     string += "|"
     # print(happy[10400:15000])
-    print(SoundComparison().compare_waves("C:/Users/Samuel/PycharmProjects/speech_analysis/wave_comparison/trial.wav", "C:/Users/Samuel/PycharmProjects/speech_analysis/wave_comparison/correct1.wav"))
+    print(SoundComparison().compare_waves("C:/Users/Samuel/PycharmProjects/speech_analysis/wave_comparison/input3.wav", "C:/Users/Samuel/PycharmProjects/speech_analysis/wave_comparison/correct3.wav"))
 
