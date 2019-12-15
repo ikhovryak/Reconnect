@@ -110,13 +110,13 @@ class SoundComparison:
                 if (speaker_end - speaker_start) > 1.5:
                     self.result["long_breaks"].append(speaker_breaks[i])
                 elif (speaker_break_time - correct_break_time) > 0.30:
-                    self.result["long_breaks"].append((speaker_breaks[i][0] + self.input_sound_start_snip, speaker_breaks[i][1] + self.input_sound_start_snip))
+                    self.result["long_breaks"].append((speaker_start + self.input_sound_start_snip, speaker_end + self.input_sound_start_snip))
                 elif (correct_break_time - speaker_break_time) > 0.30:
-                    self.result["short_breaks"].append((speaker_breaks[i][0] + self.input_sound_start_snip, speaker_breaks[i][1] + self.input_sound_start_snip))
-                if (speaker_start - correct_start) > (last_time_difference + 0.5):
-                    self.result["long_pronunciation"].append((speaker_breaks[i-1][1] + self.input_sound_start_snip, speaker_breaks[i][0] + self.input_sound_start_snip))
-                elif (correct_start - speaker_start) > (last_time_difference + 0.5):
-                    self.result["short_pronunciation"].append((speaker_breaks[i-1][1] + self.input_sound_start_snip, speaker_breaks[i][0] + self.input_sound_start_snip))
+                    self.result["short_breaks"].append((speaker_start + self.input_sound_start_snip, speaker_end + self.input_sound_start_snip))
+                if (speaker_start - correct_start) > (last_time_difference + 0.5) and i > 0:
+                    self.result["long_pronunciation"].append((speaker_breaks[i-1][1] + self.input_sound_start_snip, speaker_start + self.input_sound_start_snip))
+                elif (correct_start - speaker_start) > (last_time_difference + 0.5) and i > 0:
+                    self.result["short_pronunciation"].append((speaker_breaks[i-1][1] + self.input_sound_start_snip, speaker_start + self.input_sound_start_snip))
                 last_time_difference = abs(correct_end - speaker_end)
 
     def remove_audio_wave_silence(self, audio_data, rate, min=None):
@@ -164,7 +164,6 @@ class SoundComparison:
         for i in range(len(chunk_audio_data)):
             chunk_audio_data[i] = chunk_audio_data[i] / (int(rate) / 10)
         return chunk_audio_data, int(rate/10)
-
 
 if __name__ == "__main__":
     # web_file="C:\Users\Samuel\PycharmProjects\speech_analysis\wave_comparison"
