@@ -30,7 +30,6 @@ class SoundComparison:
         correct_silence = self.find_audio_chunk_breaks(correct_data, correct_rate, correct_data_silence)
 
 
-<<<<<<< HEAD
         # plot amplitude (or loudness) over time
         speaker_time = np.arange(0, len(speaker_data), 1) / speaker_rate
         correct_time = np.arange(0, len(correct_data), 1) / correct_rate
@@ -42,31 +41,8 @@ class SoundComparison:
         plt.subplot(212)
         plt.plot(correct_time, correct_data, linewidth=0.1, alpha=1, color='#000000')
         plt.show()
-=======
->>>>>>> 49006a9a63081363d42cff3c5edac22365619d12
         self.check_sensibility_of_breaks(speaker_silence, correct_silence)
         return self.result
-
-    def plot_graphs(self, correct_time, correct_data, speaker_time, speaker_data, color, location):
-         # plot amplitude (or loudness) over time
-
-        plt.subplot(211)
-        plt.plot(correct_time, correct_data, linewidth=0.1, alpha=1, color=color)
-        plt.xlabel('Time (s)')
-        plt.ylabel('Amplitude')
-        plt.title('Correct sound amplitude')
-
-        plt.figure(1)
-
-        plt.subplot(212)
-        plt.plot(speaker_time, speaker_data, linewidth=0.1, alpha=1, color=color)
-        plt.xlabel('Time (s)')
-        plt.ylabel('Amplitude')
-        plt.title("Your recording's amplitude")
-
-        plt.subplots_adjust(hspace=0.7)
-        plt.savefig(location)
-        # plt.show()
 
     def stereo_to_mono(self, audio_data):
         audio_data = audio_data.astype(float)
@@ -192,9 +168,5 @@ if __name__ == "__main__":
     #     string += str(abs(happy[i] / max))
     #     string += "|"
     # print(happy[10400:15000])
-<<<<<<< HEAD
     print(SoundComparison().compare_waves("C:/Users/Samuel/PycharmProjects/speech_analysis/wave_comparison/trial.wav", "C:/Users/Samuel/PycharmProjects/speech_analysis/wave_comparison/correct1.wav"))
 
-=======
-    print(SoundComparison().compare_waves("D:/Haverford/LocalHack/speech_analysis/audio_samples/no_pause1.wav", "D:/Haverford/LocalHack/speech_analysis/reconnect_app/static/Sounds/correct_sound09d546aba5a4.wav"))
->>>>>>> 49006a9a63081363d42cff3c5edac22365619d12
