@@ -7,6 +7,11 @@ import numpy as np
 
 class SoundComparison:
 
+    def __init__(self):
+        self.result = {"too_little_breaks": False, "too_many_breaks": False,
+                       "short_breaks": [], "long_breaks": [],
+                       "short_pronunciation": [], "long_pronunciation": []}
+
     def compare_waves(self, speaker_sound, correct_sound):
         speaker_rate, pre_speaker_data = scipy.io.wavfile.read(speaker_sound)
         correct_rate, correct_data = scipy.io.wavfile.read(correct_sound)
@@ -21,24 +26,21 @@ class SoundComparison:
         correct_data = self.remove_audio_wave_silence(correct_data, correct_rate, 0)
         speaker_silence = self.find_audio_chunk_breaks(speaker_data, speaker_rate, speaker_data_silence)
         correct_silence = self.find_audio_chunk_breaks(correct_data, correct_rate, correct_data_silence)
-        speaker_time = np.arange(0, len(speaker_data), 1) / speaker_rate
-        correct_time = np.arange(0, len(correct_data), 1) / correct_rate
+
 
         # plot amplitude (or loudness) over time
-        plt.figure(1)
-        plt.subplot(211)
-        plt.plot(speaker_time, speaker_data, linewidth=0.1, alpha=1, color='#000000')
-        plt.xlabel('Time (s)')
-        plt.ylabel('Amplitude')
-        plt.subplot(212)
-        plt.plot(correct_time, correct_data, linewidth=0.1, alpha=1, color='#000000')
-        plt.show()
-        if self.check_for_long_breaks(speaker_data, speaker_rate) is not None:
-            return False
-        return self.check_sensibility_of_breaks(speaker_silence, correct_silence)
-        # if self.check_for_amplitude_inconsistencies(speaker_data, speaker_rate, correct_data, correct_rate) is not None:
-        #     return False
-        # return True
+        # speaker_time = np.arange(0, len(speaker_data), 1) / speaker_rate
+        # correct_time = np.arange(0, len(correct_data), 1) / correct_rate
+        # plt.figure(1)
+        # plt.subplot(211)
+        # plt.plot(speaker_time, speaker_data, linewidth=0.1, alpha=1, color='#000000')
+        # plt.xlabel('Time (s)')
+        # plt.ylabel('Amplitude')
+        # plt.subplot(212)
+        # plt.plot(correct_time, correct_data, linewidth=0.1, alpha=1, color='#000000')
+        # plt.show()
+        self.check_sensibility_of_breaks(speaker_silence, correct_silence)
+        return self.result
 
     def stereo_to_mono(self, audio_data):
         audio_data = audio_data.astype(float)
@@ -69,8 +71,10 @@ class SoundComparison:
     def check_sensibility_of_breaks(self, speaker_breaks, correct_breaks):
         #last_time_difference is used to track the interval between gaps so that past differences would not stack up
         last_time_difference = 0
-        if len(speaker_breaks) != len(correct_breaks):
-            return False
+        if len(speaker_breaks) > len(correct_breaks):
+            self.result["too_many_breaks"] = True
+        elif len(speaker_breaks) < len(correct_breaks):
+            self.result["too_little_breaks"] = False
         else:
             for i in range(len(speaker_breaks)):
                 speaker_start = speaker_breaks[i][0]
@@ -79,12 +83,17 @@ class SoundComparison:
                 correct_start = correct_breaks[i][0]
                 correct_end = correct_breaks[i][1]
                 correct_break_time = correct_end - correct_start
-                if abs(speaker_break_time - correct_break_time) > 0.30:
-                    return False
-                if abs(speaker_start - correct_start) > (last_time_difference + 0.2):
-                    return False
+                if (speaker_end - speaker_start) > 2.2:
+                    self.result["long_breaks"].append(speaker_breaks[i])
+                elif (speaker_break_time - correct_break_time) > 0.30:
+                    self.result["long_breaks"].append(speaker_breaks[i])
+                elif (correct_break_time - speaker_break_time) > 0.30:
+                    self.result["short_breaks"].append(speaker_breaks[i])
+                if (speaker_start - correct_start) > (last_time_difference + 0.5):
+                    self.result["long_pronunciation"].append((speaker_breaks[i-1][1], speaker_breaks[i][0]))
+                elif (correct_start - speaker_start) > (last_time_difference + 0.5):
+                    self.result["short_pronunciation"].append((speaker_breaks[i-1][1], speaker_breaks[i][0]))
                 last_time_difference = abs(correct_end - speaker_end)
-            return True
 
     def remove_audio_wave_silence(self, audio_data, rate, min=None):
         start_counter = 0
@@ -100,18 +109,18 @@ class SoundComparison:
         end = int(rate/3)
         return max(max(audio_data[-end:]), 0.15) if min is None else 0.1
 
-    def check_for_long_breaks(self, audio_data, rate):
-        counter = 0
-        duration = 0
-        while counter < len(audio_data):
-            if audio_data[counter] < self.calculate_silent_amplitude(audio_data, rate):
-                duration += 1
-                if duration > (2.2 * rate):
-                    return counter / rate
-            else:
-                duration = 0
-            counter += 1
-        return None
+    # def check_for_long_breaks(self, audio_data, rate):
+    #     counter = 0
+    #     duration = 0
+    #     while counter < len(audio_data):
+    #         if audio_data[counter] < self.calculate_silent_amplitude(audio_data, rate):
+    #             duration += 1
+    #             if duration > (2.2 * rate):
+    #                 return counter / rate
+    #         else:
+    #             duration = 0
+    #         counter += 1
+    #     return None
 
     # def check_for_amplitude_inconsistencies(self, audio_data1, rate1, audio_data2, rate2):
     #     chunk_audio1 = self.convert_audio_data_to_chunk_audio_data(audio_data1, rate1)
