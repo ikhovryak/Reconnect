@@ -14,7 +14,7 @@ from werkzeug import secure_filename
 from speech_to_text import get_text_from_input
 from compare_text import *
 import glob
-from get_breaks import *
+from get_breaks1 import *
 
 
 app = Flask(__name__)
@@ -151,6 +151,7 @@ def feedback():
     path_to_correct = os.path.join(app.root_path, speech.correct_audio_filename)
     print("correct_path -> ", path_to_correct)
     long_breaks = SoundComparison().compare_waves(path_to_user, path_to_correct, path_to_save)
+    print("long-breaks = ", long_breaks)
     # return_breaks("D:/Haverford/LocalHack/speech_analysis/reconnect_app/static/Sounds/input_soundd99ec5ce7675.wav", "D:/Haverford/LocalHack/speech_analysis/reconnect_app/static/Sounds/correct_sound145255b4ec90.wav", path_to_save)
     return render_template('feedback.html',  pic_path=path_to_save, threshold=threshold, correct_list=correct_list, user_list=user_list, wrong_correct=wrong_correct, wrong_user=wrong_user, title="Reconnect - Feedback")
 

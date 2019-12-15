@@ -13,10 +13,10 @@ def get_text_from_input(input_audio_filename, speech_config):
 
     # Starts speech recognition, and returns after a single utterance is recognized. The end of a
     # single utterance is determined by listening for silence at the end or until a maximum of 15
-    # seconds of audio is processed.  The task returns the recognition text as result. 
+    # seconds of audio is processed.  The task returns the recognition text as result.
     # Note: Since recognize_once() returns only a single utterance, it is suitable only for single
-    # shot recognition like command or query. 
+    # shot recognition like command or query.
     # For long-running multi-utterance recognition, use start_continuous_recognition() instead.
     result = speech_recognizer.recognize_once()
+    # result = speech_recognizer.start_continuous_recognition()
     return result.text
-    
