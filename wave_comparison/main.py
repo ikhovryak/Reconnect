@@ -46,7 +46,7 @@ class SoundComparison:
 
     def stereo_to_mono(self, audio_data):
         audio_data = audio_data.astype(float)
-        return audio_data.sum(axis=1)
+        return audio_data.sum(axis=1) if type(audio_data[0]) == "list" else audio_data
 
     def normalize_audio_data_wave(self, original_audio_data):
         max_amplitude = max([abs(x) for x in original_audio_data])
@@ -168,5 +168,5 @@ if __name__ == "__main__":
     #     string += str(abs(happy[i] / max))
     #     string += "|"
     # print(happy[10400:15000])
-    print(SoundComparison().compare_waves("C:/Users/Samuel/PycharmProjects/speech_analysis/wave_comparison/input_sound.wav", "C:/Users/Samuel/PycharmProjects/speech_analysis/wave_comparison/correct_sound.wav"))
+    print(SoundComparison().compare_waves("C:/Users/Samuel/PycharmProjects/speech_analysis/wave_comparison/trial.wav", "C:/Users/Samuel/PycharmProjects/speech_analysis/wave_comparison/correct1.wav"))
 
