@@ -15,7 +15,7 @@ correct_audio_filename = "correct_sound.wav"
 print("Enter a phrase you want to practice today:")
 correct_text = input()
 
-# I think I have a working prototype
+# I think we have a working prototype
 
 
 

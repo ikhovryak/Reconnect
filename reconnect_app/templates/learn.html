@@ -1,10 +1,14 @@
 {% extends "template.html" %}
 {% block content %}
-          <!-- <div class="card"> -->
-            <!-- <div class="card-header">
-              Learn
-            </div> -->
-            <!-- <div class="card-body"> -->
+<div class="row bg-white rounded py-4">
+<div class="col-md-2"></div>
+<div class="col-md-8">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a class="text-info" href="{{ url_for('home') }}">Main</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Practice</li>
+    </ol>
+  </nav>
             <h3 class="display-4">Let's begin!</h3>
               <form method="POST" action="">
                 {{ correct_form.hidden_tag() }}
@@ -32,22 +36,8 @@
                 </div>
               </form>
 
-              {% if correct_text %}
-              <hr>
-              <strong><p class="lead"><span class="badge badge-info mr-2">2</span>This is how it sounds:</p></strong>
+                </div>
+                <div class="col-md-2"></div>
 
-              <audio id="correct_audio" preload="auto" controls>
-                <source id="correct_source" src="{{ correct_sound_address }}" type="audio/wav">
-                    Your browser does not support the audio element.
-              </audio>
-            <br/>
-            <br/>
-              <hr>
-                <strong><p class="lead"><span class="badge badge-info mr-2">3</span>Ready to practice? Select your file!</p></strong>
-
-                <input type="file" accept="audio/*" capture>
-              {% endif %}
-
-          <!-- </div> -->
-        <!-- </div> -->
+                </div>
 {% endblock content %}

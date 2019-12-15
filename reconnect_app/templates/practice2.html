@@ -1,17 +1,20 @@
 {% extends "template.html" %}
 {% block content %}
-          <!-- <div class="card"> -->
-            <!-- <div class="card-header">
-              Learn
-            </div> -->
-            <!-- <div class="card-body"> -->
-            <h3 class="display-4">Let's beginnn!</h3>
+<div class="row bg-white rounded py-4">
+<div class="col-md-2"></div>
+<div class="col-md-8">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a class="text-info" href="{{ url_for('home') }}">Main</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Practice</li>
+    </ol>
+  </nav>
+            <h3 class="display-4">Let's begin!</h3>
               <!-- <form method="POST" action=""> -->
-                <fieldset class="form-group">
-                  <div class="form-group">
+                <fieldset class="form-group  my-0 py-0">
+                  <div class="form-group  my-0 py-0">
                     <strong><p class="lead"><span class="badge badge-info mr-2">1</span>Type in the sentence you want to practice today:</p></strong>
-
-                      <p class="text-info">{{ correct_text }}</p>
+                      <p class="text-info ml-5 my-0 py-0 font-weight-bold">{{ correct_text }}</p>
                   </div>
                 </fieldset>
 
@@ -22,8 +25,7 @@
                 <source id="correct_source" src="{{ correct_sound_address }}" type="audio/wav">
                     Your browser does not support the audio element.
               </audio>
-            <br/>
-            <br/>
+
               <hr>
                 <strong><p class="lead"><span class="badge badge-info mr-2">3</span>Ready to practice? Select your file!</p></strong>
 
@@ -40,11 +42,20 @@
                       <!-- <input type="file" accept="audio/* class="form-control" id="user_speech" name="user_speech"  value="" capture> -->
                     </div>
                   </fieldset>
-                <div class="form-group">
-                  {{ user_form.submitu(class="btn btn-outline-info") }}
-                </div>
+                  <div class="row my-0 py-0">
+                    <div class="col text-center  my-0 py-0">
+                      <!-- <div class="form-group"> -->
+                        {{ user_form.submitu(class="btn btn-outline-info") }}
+                      <!-- </div> -->
+                    </div>
+                  </div>
+
               </form>
 
-          <!-- </div> -->
-        <!-- </div> -->
+
+              </div>
+
+              <div class="col-md-2"></div>
+
+              </div>
 {% endblock content %}

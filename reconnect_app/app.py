@@ -13,6 +13,8 @@ from werkzeug import secure_filename
 # from record_audio import record_audio
 from speech_to_text import get_text_from_input
 from compare_text import *
+import glob
+
 
 app = Flask(__name__)
 speech_key, service_region = "c87da06e1dfe4dd3b6e58fa41ec19c95", "eastus"
@@ -20,6 +22,7 @@ speech_config = speechsdk.SpeechConfig(subscription=speech_key, region=service_r
 app.config['SECRET_KEY'] = "4cf9c9881c554ef032f3a12c7f225dea"
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
 db = SQLAlchemy(app)
+
 
 class Speech(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -56,7 +59,7 @@ def save_sound_file(user_audio):
     return audio_fn
 
 def generate_correct_sound(correct_text):
-    new_file_name = data["correct_audio_filename"] + str(time.time()) + ".wav"
+    new_file_name = data["correct_audio_filename"] + secrets.token_hex(6) + ".wav"
     print(new_file_name)
     path_to_file = os.path.join(app.root_path, "static/Sounds", new_file_name)
     correct_audio = get_correct_sound(path_to_file, correct_text, speech_config)
@@ -64,10 +67,12 @@ def generate_correct_sound(correct_text):
 
 @app.route("/")
 def home():
+
     return render_template('index.html', title="Reconnect - Main")
 
 @app.route("/learn", methods=["GET", "POST"])
 def learn():
+
     correct_form = CorrectSpeechForm()
     if correct_form.submitc.data and correct_form.validate_on_submit():
         user_form = UserSpeechForm()
@@ -126,13 +131,28 @@ def practice2():
 @app.route("/feedback")
 def feedback():
     speech = Speech.query.order_by(-Speech.id).first()
-    differences = get_differences(speech.correct_text, speech.user_text)
-    correct_list = list_of_words(speech.correct_text)
-    user_list = list_of_words(speech.user_text)
-    wrong_correct = differences.keys()
-    wrong_user = differences.values()
-    return render_template('feedback.html', correct_list=correct_list, user_list=user_list, wrong_correct=wrong_correct, wrong_user=wrong_user)
+    # differences = get_differences(speech.correct_text, speech.user_text)
+    # print(differences)
+    correct_list = list_of_words(clean(speech.correct_text))
 
+    user_list = list_of_words(clean(speech.user_text))
+    # wrong_correct = differences.keys()
+    # wrong_user = differences.values()
+    wrong_correct, wrong_user = get_differences(speech.correct_text, speech.user_text)
+    if len(correct_list)>=len(user_list):
+        threshold = len(user_list)//2
+    else:
+        threshold = len(correct_list)//2
+    print("wrong_correct -> ", wrong_correct)
+    print("wrong_user -> ", wrong_user)
+    return render_template('feedback.html', threshold=threshold, correct_list=correct_list, user_list=user_list, wrong_correct=wrong_correct, wrong_user=wrong_user, title="Reconnect - Feedback")
+
+@app.route("/restart")
+def restart():
+    AUDIO_FOLDER = glob.glob(os.path.join(app.root_path, 'static/Sounds/*'))
+    for f in AUDIO_FOLDER:
+        os.remove(f)
+    return redirect(url_for('learn'))
 
 if __name__ == '__main__':
     app.run(debug=True)

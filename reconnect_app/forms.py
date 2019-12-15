@@ -10,4 +10,4 @@ class CorrectSpeechForm(FlaskForm):
 
 class UserSpeechForm(FlaskForm):
     user_speech = FileField('Your recording', validators=[FileAllowed(['wav']), FileRequired()])
-    submitu = SubmitField('Submit recording')
+    submitu = SubmitField('Get feedback')
