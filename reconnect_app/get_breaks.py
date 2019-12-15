@@ -7,7 +7,7 @@ import numpy as np
 
 class SoundComparison:
 
-    def compare_waves(self, speaker_sound, correct_sound):
+    def compare_waves(self, speaker_sound, correct_sound, location_to_save):
         speaker_rate, pre_speaker_data = scipy.io.wavfile.read(speaker_sound)
         correct_rate, correct_data = scipy.io.wavfile.read(correct_sound)
         speaker_data = self.stereo_to_mono(pre_speaker_data)
@@ -25,23 +25,23 @@ class SoundComparison:
         correct_time = np.arange(0, len(correct_data), 1) / correct_rate
 
         if self.check_for_long_breaks(speaker_data, speaker_rate) is not None:
-            self.plot_graphs(correct_time, correct_data, speaker_time, speaker_data, "#5cb85c")
+            self.plot_graphs(correct_time, correct_data, speaker_time, speaker_data, "#5cb85c", location_to_save)
             return False
-        self.plot_graphs(correct_time, correct_data, speaker_time, speaker_data, "#5cb85c")
+        self.plot_graphs(correct_time, correct_data, speaker_time, speaker_data, "#5cb85c", location_to_save)
         return self.check_sensibility_of_breaks(speaker_silence, correct_silence)
         # if self.check_for_amplitude_inconsistencies(speaker_data, speaker_rate, correct_data, correct_rate) is not None:
         #     return False
         # return True
 
-    def plot_graphs(self, correct_time, correct_data, speaker_time, speaker_data, color):
+    def plot_graphs(self, correct_time, correct_data, speaker_time, speaker_data, color, location):
          # plot amplitude (or loudness) over time
-        
+
         plt.subplot(211)
         plt.plot(correct_time, correct_data, linewidth=0.1, alpha=1, color=color)
         plt.xlabel('Time (s)')
         plt.ylabel('Amplitude')
         plt.title('Correct sound amplitude')
-        
+
         plt.figure(1)
 
         plt.subplot(212)
@@ -49,10 +49,10 @@ class SoundComparison:
         plt.xlabel('Time (s)')
         plt.ylabel('Amplitude')
         plt.title("Your recording's amplitude")
-        
+
         plt.subplots_adjust(hspace=0.7)
-        plt.savefig('plots.png')
-        plt.show()
+        plt.savefig(location)
+        # plt.show()
 
     def stereo_to_mono(self, audio_data):
         audio_data = audio_data.astype(float)
@@ -145,6 +145,9 @@ class SoundComparison:
             chunk_audio_data[i] = chunk_audio_data[i] / (int(rate) / 10)
         return chunk_audio_data, int(rate/10)
 
+def return_breaks(correct_loc, user_loc, location_to_save):
+    print(SoundComparison().compare_waves(user_loc, correct_loc, location_to_save))
+
 if __name__ == "__main__":
     # web_file="C:\Users\Samuel\PycharmProjects\speech_analysis\wave_comparison"
     #
@@ -170,4 +173,5 @@ if __name__ == "__main__":
     #     string += str(abs(happy[i] / max))
     #     string += "|"
     # print(happy[10400:15000])
-    print(SoundComparison().compare_waves("D:/Haverford/LocalHack/speech_analysis/reconnect_app/input_sound.wav", "D:/Haverford/LocalHack/speech_analysis/reconnect_app/correct_sound.wav"))
+
+    print(SoundComparison().compare_waves("D:/Haverford/LocalHack/speech_analysis/reconnect_app/static/Sounds/input_soundd99ec5ce7675.wav", "D:/Haverford/LocalHack/speech_analysis/reconnect_app/static/Sounds/correct_sound145255b4ec90.wav", "plots.png"))
