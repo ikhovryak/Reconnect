@@ -73,6 +73,25 @@
   <hr>
   <strong><p class="lead"><span class="badge badge-info mr-2">2</span>Pacing</p></strong>
   <img src="{{ pic_path }}" />
+  <div class="row pl-4">
+    <div class="col">
+      {% if long_breaks|length == 0 %}
+        <div class="bd-callout bd-callout-success">
+          <h5> Great job! </h5>
+          <p>Congratulations! You pronounced the words with correct pace and you spoke naturally without significant breaks!</p>
+        </div>
+      {% else %}
+      <div class="bd-callout bd-callout-warning">
+        <h5> Nice try! </h5>
+        <p>Your speeking was good, however, you made some significant breaks while pronoucing the sentence. Here are the times of your breaks:</p>
+          <ol>
+          {% for break in long_breaks %}
+            <li>{{ break }}</li>
+          {% endfor %}
+          </ol>
+        <p> Prectice makes perfect! Try decreasing the breaks between the words.</p>
+      </div>
+      {% endif %}
     <div class="row ">
       <div class="col text-center">
         <a href="{{ url_for('restart') }}" class="btn btn-info">Try again!</a>
