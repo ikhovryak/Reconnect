@@ -1,9 +1,9 @@
 # Reconnect
-### [https://www.speech-reconnect.com]
+### https://www.speech-reconnect.com
 Reconnect is a website that uses speech recognition and analysis to teach people with hearing impairments to talk by giving them feedback on which words they have mispronounced, when they talked too loud/quiet, and when the breaks between the words were too long. We aspire it to be an interactive platform that assists individuals with impaired hearing to **reconnect** with communities and reintegrate into the society.
 
 ### Live demo:
-Check it out at **[https://www.speech-reconnect.com]** 
+Check it out at **https://www.speech-reconnect.com** 
 
 ### Our team
 - Iryna Khovryak, front-end and back-end, Haverford College '22
